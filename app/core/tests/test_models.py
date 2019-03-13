@@ -1,6 +1,24 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+from core import models
+
+
+def sample_plantFamily(name='test family'):
+    return models.PlantFamilies.objects.create(name=name)
+
+
+def sample_plantGene(name='test Gene', family=None):
+    if family is None:
+        family = sample_plantFamily()
+    return models.PlantGenes.objects.create(name=name, family=family)
+
+
+def sample_plantSpecie(name='test specie', gene=None):
+    if gene is None:
+        gene = sample_plantGene()
+    return models.PlantSpecies.objects.create(name=name, gene=gene)
+
 
 class ModelTests(TestCase):
 
@@ -37,3 +55,21 @@ class ModelTests(TestCase):
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+    def test_plantFamilies_str(self):
+        """Test the plant family string representation"""
+        plantFamily = sample_plantFamily()
+
+        self.assertEqual(str(plantFamily), plantFamily.name)
+
+    def test_plantGenes_str(self):
+        """Test the plant gene string representation"""
+        plantGene = sample_plantGene()
+
+        self.assertEqual(str(plantGene), plantGene.name)
+
+    def test_plantSpecies_str(self):
+        """Test the plant specie string representation"""
+        plantSpecie = sample_plantSpecie()
+
+        self.assertEqual(str(plantSpecie), plantSpecie.name)

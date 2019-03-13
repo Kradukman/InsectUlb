@@ -35,3 +35,29 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+
+class PlantFamilies(models.Model):
+    """Plant family"""
+    name = models.CharField(max_length=255, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class PlantGenes(models.Model):
+    """Plant gene"""
+    name = models.CharField(max_length=255, blank=False)
+    family = models.ForeignKey(PlantFamilies, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class PlantSpecies(models.Model):
+    """Plant species"""
+    name = models.CharField(max_length=255, blank=False)
+    gene = models.ForeignKey(PlantGenes, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
