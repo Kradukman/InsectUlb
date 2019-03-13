@@ -1,6 +1,7 @@
 from rest_framework import generics, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
+from rest_framework import viewsets
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -8,8 +9,20 @@ from django.shortcuts import get_object_or_404
 from user.serializers import UserSerializer, AuthTokenSerializer
 
 
-class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system"""
+class UserViewset(viewsets.ModelViewSet):
+    """Manage user as admin"""
+    serializer_class = UserSerializer
+    queryset = get_user_model().objects.all()
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        permissions.IsAdminUser,
+    )
+
+
+class ListCreateUserView(generics.ListCreateAPIView):
+    """List users or create a new user in the system"""
+    queryset = get_user_model().objects.all()
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (
         permissions.IsAuthenticated,
@@ -38,8 +51,19 @@ class RetrieveUserView(generics.RetrieveAPIView):
         return obj
 
 
+class RetrieveUpdateUserView(generics.RetrieveUpdateAPIView):
+    """Retrieve user as authenticated user"""
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        permissions.IsAdminUser
+    )
+
+
 class UpdateUserView(generics.UpdateAPIView):
-    """Update user as authenticated user"""
+    """Update user self as authenticated admin user"""
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     authentication_classes = (authentication.TokenAuthentication,)

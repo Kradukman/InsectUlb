@@ -5,11 +5,17 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from user.serializers import UserSerializer
 
-CREATE_USER_URL = reverse('user:create')
+
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
-UPDATE_URL = reverse('user:user_update')
+USER_URL = reverse('user:user-list')
+
+
+def detail_url(user_id):
+    """Return user detail URL"""
+    return reverse('user:user-detail', args=[user_id])
 
 
 def create_user(**params):
@@ -20,16 +26,23 @@ def create_superuser(**params):
     return get_user_model().objects.create_superuser(**params)
 
 
+def sample_user(
+        email='sampletest@ulb.ac.be',
+        password='testpass123',
+        name='test1'
+    ):
+    return create_user(email=email, password=password, name=name)
+
+
 class PublicUserApiTests(TestCase):
     """Test the user API public"""
 
     def setUp(self):
         self.client = APIClient()
 
-    def test_create_user_not_connected(self):
-        """Test creating a user without identification"""
-        payload = {'email': 'test@ulb.ac.be', 'password': 'test123'}
-        res = self.client.post(CREATE_USER_URL, payload)
+    def test_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(USER_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -52,7 +65,7 @@ class PublicUserApiTests(TestCase):
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_crete_token_no_user(self):
+    def test_create_token_no_user(self):
         """Test that token is not created if user doesn't exist"""
         payload = {'email': 'test@ulb.ac.be', 'password': 'testpass123'}
         res = self.client.post(TOKEN_URL, payload)
@@ -67,12 +80,6 @@ class PublicUserApiTests(TestCase):
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_retrieve_user_unauthorized(self):
-        """Test that authentication is required for users"""
-        res = self.client.get(ME_URL)
-
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 class PrivateUserApiTests(TestCase):
     """Test API request that require authentication"""
@@ -86,14 +93,9 @@ class PrivateUserApiTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_create_user_connected_not_admin(self):
-        """Test create a user without being admin"""
-        payload = {
-            'email': 'test2@ulb.ac.be',
-            'password': 'test123',
-            'name': 'test'
-        }
-        res = self.client.post(CREATE_USER_URL, payload)
+    def test_admin_required(self):
+        """Test authentification is required"""
+        res = self.client.get(USER_URL)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -103,8 +105,10 @@ class PrivateUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, {
+            'id': self.user.id,
             'name': self.user.name,
-            'email': self.user.email
+            'email': self.user.email,
+            'is_active': self.user.is_active
         })
 
     def test_post_me_not_allowed(self):
@@ -112,13 +116,6 @@ class PrivateUserApiTests(TestCase):
         res = self.client.post(ME_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def test_update_user_profile_fail(self):
-        """Test updating the user profile for admin"""
-        payload = {'name': 'new name', 'password': 'newpassword123'}
-        res = self.client.patch(UPDATE_URL, payload)
-
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class PrivateUserAPIAdminTests(TestCase):
@@ -133,35 +130,57 @@ class PrivateUserAPIAdminTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+    def test_retrieve_users(self):
+        """Test listing user for admin"""
+        sample_user()
+        sample_user(email='test2@ulb.ac.be', name='test2')
+        res = self.client.get(USER_URL)
+
+        users = get_user_model().objects.all().order_by('id')
+        serializer = UserSerializer(users, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_view_user_detail(self):
+        user = sample_user()
+
+        url = detail_url(user.id)
+        res = self.client.get(url)
+
+        serializer = UserSerializer(user)
+        self.assertEqual(res.data, serializer.data)
+
     def test_create_user_if_admin(self):
         """Test that admin can create user"""
         payload = {
             'email': 'test2@ulb.ac.be',
             'password': 'pass1234',
             'name': 'test name'}
-        res = self.client.post(CREATE_USER_URL, payload)
+        res = self.client.post(USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        user = get_user_model().objects.get(**res.data)
+        user = get_user_model().objects.get(id=res.data['id'])
         self.assertTrue(user.check_password(payload['password']))
         self.assertNotIn('password', res.data)
+        self.assertEqual(user.name, res.data['name'])
+        self.assertEqual(user.is_active, res.data['is_active'])
+        self.assertEqual(user.email, res.data['email'])
 
-    def test_update_user_profile(self):
+    def test_full_update_user(self):
         """Test updating the user profile for admin"""
-        payload = {'name': 'new name', 'password': 'newpassword123'}
-        res = self.client.patch(UPDATE_URL, payload)
+        user = sample_user()
+        payload = {
+            'id': user.id,
+            'name': 'new name',
+            'password': 'newpassword123',
+            'is_active': 'False'
+        }
+        url = detail_url(user.id)
+        res = self.client.patch(url, payload)
 
-        self.user.refresh_from_db()
+        user.refresh_from_db()
 
-        self.assertEqual(self.user.name, payload['name'])
-        self.assertTrue(self.user.check_password(payload['password']))
+        self.assertEqual(user.name, payload['name'])
+        self.assertFalse(user.is_active)
+        self.assertTrue(user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-    # Test create USER
-    # create super USER
-    # force login
-    # create USER
-    # user should be created
-    # test permission in serializer
-    # test create user without superuser
-    # should not create user
