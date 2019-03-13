@@ -27,10 +27,10 @@ def create_superuser(**params):
 
 
 def sample_user(
-        email='sampletest@ulb.ac.be',
-        password='testpass123',
-        name='test1'
-    ):
+                    email='sampletest@ulb.ac.be',
+                    password='testpass123',
+                    name='test1'
+                ):
     return create_user(email=email, password=password, name=name)
 
 
@@ -123,10 +123,10 @@ class PrivateUserAPIAdminTests(TestCase):
 
     def setUp(self):
         self.user = create_superuser(
-            email='testAdmin@ulb.ac.be',
-            password='testpass',
-            name='admin name'
-        )
+                        email='testAdmin@ulb.ac.be',
+                        password='testpass',
+                        name='admin name'
+                    )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

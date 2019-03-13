@@ -20,17 +20,6 @@ class UserViewset(viewsets.ModelViewSet):
     )
 
 
-class ListCreateUserView(generics.ListCreateAPIView):
-    """List users or create a new user in the system"""
-    queryset = get_user_model().objects.all()
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (
-        permissions.IsAuthenticated,
-        permissions.IsAdminUser,
-    )
-    serializer_class = UserSerializer
-
-
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user"""
     serializer_class = AuthTokenSerializer
@@ -43,31 +32,6 @@ class RetrieveUserView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
-
-    def get_object(self):
-        """Retrieve and return authentication user"""
-        queryset = self.get_queryset()
-        obj = get_object_or_404(queryset, email=self.request.user.email)
-        return obj
-
-
-class RetrieveUpdateUserView(generics.RetrieveUpdateAPIView):
-    """Retrieve user as authenticated user"""
-    queryset = get_user_model().objects.all()
-    serializer_class = UserSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (
-        permissions.IsAuthenticated,
-        permissions.IsAdminUser
-    )
-
-
-class UpdateUserView(generics.UpdateAPIView):
-    """Update user self as authenticated admin user"""
-    queryset = get_user_model().objects.all()
-    serializer_class = UserSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
 
     def get_object(self):
         """Retrieve and return authentication user"""
