@@ -42,9 +42,21 @@ class PublicPlantApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    def test_auth_required(self):
+    def test_family_auth_required(self):
         """Test authentification is required"""
         res = self.client.get(FAMILY_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_gene_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(GENE_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_specie_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(SPECIE_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -81,13 +93,79 @@ class PrivatePlantApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_admin_required(self):
+    def test_family_admin_required(self):
         """Test admin is required"""
         payload = {'name': 'family test name'}
 
         res = self.client.post(FAMILY_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_gene_admin_required(self):
+        """Test admin is required"""
+        family = sample_plantFamily()
+        payload = {'name': 'gene test name', 'family_id': family.id}
+
+        res = self.client.post(GENE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_specie_admin_required(self):
+        """Test admin is required"""
+        gene = sample_plantGene()
+        payload = {'name': 'specie test name', 'gene_id': gene.id}
+
+        res = self.client.post(SPECIE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_genes(self):
+        """Test listing genes"""
+        sample_plantGene()
+        sample_plantGene(name='test 2')
+
+        res = self.client.get(GENE_URL)
+
+        genes = models.PlantGenes.objects.all().order_by('id')
+        serializer = serializers.PlantGenesSerializer(genes, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_gene(self):
+        """Test retrieving a gene"""
+        gene = sample_plantGene()
+
+        url = detail_gene_url(gene.id)
+        res = self.client.get(url)
+
+        serializer = serializers.PlantGenesSerializer(gene)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_list_species(self):
+        """Test listing species"""
+        sample_plantSpecie()
+        sample_plantSpecie(name='test 2')
+
+        res = self.client.get(SPECIE_URL)
+
+        species = models.PlantSpecies.objects.all().order_by('id')
+        serializer = serializers.PlantSpeciesSerializer(species, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_specie(self):
+        """Test retrieving a specie"""
+        specie = sample_plantSpecie()
+
+        url = detail_specie_url(specie.id)
+        res = self.client.get(url)
+
+        serializer = serializers.PlantSpeciesSerializer(specie)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
 
 
 class PrivatePlantApiAsAdminTests(TestCase):
@@ -125,30 +203,6 @@ class PrivatePlantApiAsAdminTests(TestCase):
 
         self.assertEqual(family.name, payload['name'])
 
-    def test_list_genes(self):
-        """Test listing genes"""
-        sample_plantGene()
-        sample_plantGene(name='test 2')
-
-        res = self.client.get(GENE_URL)
-
-        genes = models.PlantGenes.objects.all().order_by('id')
-        serializer = serializers.PlantGenesSerializer(genes, many=True)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
-
-    def test_retrieve_gene(self):
-        """Test retrieving a gene"""
-        gene = sample_plantGene()
-
-        url = detail_gene_url(gene.id)
-        res = self.client.get(url)
-
-        serializer = serializers.PlantGenesSerializer(gene)
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
-
     def test_create_gene(self):
         """Test creating a gene"""
         family = sample_plantFamily()
@@ -175,30 +229,6 @@ class PrivatePlantApiAsAdminTests(TestCase):
 
         self.assertEqual(gene.name, payload['name'])
         self.assertEqual(gene.family.id, payload['family_id'])
-
-    def test_list_species(self):
-        """Test listing species"""
-        sample_plantSpecie()
-        sample_plantSpecie(name='test 2')
-
-        res = self.client.get(SPECIE_URL)
-
-        species = models.PlantSpecies.objects.all().order_by('id')
-        serializer = serializers.PlantSpeciesSerializer(species, many=True)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
-
-    def test_retrieve_specie(self):
-        """Test retrieving a specie"""
-        specie = sample_plantSpecie()
-
-        url = detail_specie_url(specie.id)
-        res = self.client.get(url)
-
-        serializer = serializers.PlantSpeciesSerializer(specie)
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
 
     def test_create_specie(self):
         """Test creating a specie"""
