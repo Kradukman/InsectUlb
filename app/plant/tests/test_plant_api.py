@@ -57,24 +57,6 @@ class PrivatePlantApiTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_admin_required(self):
-        """Test admin is required"""
-        res = self.client.get(FAMILY_URL)
-
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
-
-
-class PrivatePlantApiAsAdminTests(TestCase):
-    """Test API as admin"""
-
-    def setUp(self):
-        self.user = create_superuser(
-                        email='admin@ulb.ac.be',
-                        password='test123'
-                    )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
     def test_list_families(self):
         """Test listing families"""
         sample_plantFamily()
@@ -98,6 +80,26 @@ class PrivatePlantApiAsAdminTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_admin_required(self):
+        """Test admin is required"""
+        payload = {'name': 'family test name'}
+
+        res = self.client.post(FAMILY_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PrivatePlantApiAsAdminTests(TestCase):
+    """Test API as admin"""
+
+    def setUp(self):
+        self.user = create_superuser(
+                        email='admin@ulb.ac.be',
+                        password='test123'
+                    )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
 
     def test_create_family(self):
         """Test creating a family"""

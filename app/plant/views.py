@@ -1,32 +1,23 @@
-from rest_framework import viewsets, authentication, permissions
+from core.views import BasePermissionsViewset
 
 from core.models import PlantFamilies, PlantGenes, PlantSpecies
 
 from plant import serializers
 
 
-class BasePlantViewset(viewsets.ModelViewSet):
-    """Base viewset to manage plants as admin"""
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (
-        permissions.IsAuthenticated,
-        permissions.IsAdminUser,
-    )
-
-
-class PlantFamiliesViewset(BasePlantViewset):
+class PlantFamiliesViewset(BasePermissionsViewset):
     """Manage plant families as admin"""
     serializer_class = serializers.PlantFamiliesSerializer
     queryset = PlantFamilies.objects.all()
 
 
-class PlantGenesViewset(BasePlantViewset):
+class PlantGenesViewset(BasePermissionsViewset):
     """Manage plant Genes as admin"""
     serializer_class = serializers.PlantGenesSerializer
     queryset = PlantGenes.objects.all()
 
 
-class PlantSpeciesViewset(BasePlantViewset):
+class PlantSpeciesViewset(BasePermissionsViewset):
     """Manage plant species as admin"""
     serializer_class = serializers.PlantSpeciesSerializer
     queryset = PlantSpecies.objects.all()

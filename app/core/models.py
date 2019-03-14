@@ -61,3 +61,11 @@ class PlantSpecies(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PlaceType(models.Model):
+    """Place type"""
+    name = models.CharField(max_length=255, blank=False)
+
+    def __str__(self):
+        return self.name

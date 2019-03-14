@@ -20,6 +20,10 @@ def sample_plantSpecie(name='test specie', gene=None):
     return models.PlantSpecies.objects.create(name=name, gene=gene)
 
 
+def sample_placeType(name='test place type'):
+    return models.PlaceType.objects.create(name=name)
+
+
 class ModelTests(TestCase):
 
     def test_create_user_with_email_successful(self):
@@ -73,3 +77,9 @@ class ModelTests(TestCase):
         plantSpecie = sample_plantSpecie()
 
         self.assertEqual(str(plantSpecie), plantSpecie.name)
+
+    def test_placetype_str(self):
+        """Test the place type string representation"""
+        placeType = sample_placeType()
+
+        self.assertEqual(str(placeType), placeType.name)
