@@ -12,5 +12,5 @@ router.register('user', views.UserViewset)
 urlpatterns = [
     path('token/', views.CreateTokenView.as_view(), name='token'),
     path('me/', views.RetrieveUserView.as_view(), name='me'),
-    path('', include(router.urls))
+    path('', include(router.urls)),
 ]
