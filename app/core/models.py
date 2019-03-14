@@ -69,3 +69,18 @@ class PlaceType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Country(models.Model):
+    name = models.CharField(max_length=200, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Region(models.Model):
+    name = models.CharField(max_length=200, blank=False)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name

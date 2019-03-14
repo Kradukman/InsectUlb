@@ -8,6 +8,7 @@ app_name = 'place'
 
 router = DefaultRouter()
 router.register('placetype', views.PlaceTypeViewset)
+router.register('country', views.CountryViewset)
 
 urlpatterns = [
     path('', include(router.urls)),

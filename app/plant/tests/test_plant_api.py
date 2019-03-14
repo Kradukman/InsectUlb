@@ -190,6 +190,14 @@ class PrivatePlantApiAsAdminTests(TestCase):
         for key in payload.keys():
             self.assertEqual(payload[key], getattr(family, key))
 
+    def test_create_family_no_name_fail(self):
+        """Test creating a family without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(FAMILY_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_update_family(self):
         """Test updating family"""
         family = sample_plantFamily()
@@ -214,6 +222,14 @@ class PrivatePlantApiAsAdminTests(TestCase):
         gene = models.PlantGenes.objects.get(id=res.data['id'])
         self.assertEqual(gene.name, payload['name'])
         self.assertEqual(gene.family.id, payload['family_id'])
+
+    def test_create_gene_no_name_fail(self):
+        """Test creating a gene without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(GENE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_gene(self):
         """Test updating gene²"""
@@ -241,6 +257,14 @@ class PrivatePlantApiAsAdminTests(TestCase):
         specie = models.PlantSpecies.objects.get(id=res.data['id'])
         self.assertEqual(specie.name, payload['name'])
         self.assertEqual(specie.gene.id, payload['gene_id'])
+
+    def test_create_specie_no_name_fail(self):
+        """Test creating a specie without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(SPECIE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_specie(self):
         """Test updating specie²"""

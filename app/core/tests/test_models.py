@@ -24,6 +24,16 @@ def sample_placeType(name='test place type'):
     return models.PlaceType.objects.create(name=name)
 
 
+def sample_country(name='test country'):
+    return models.Country.objects.create(name=name)
+
+
+def sample_region(name='test country', country=None):
+    if country is None:
+        country = sample_country()
+    return models.Region.objects.create(name=name, country=country)
+
+
 class ModelTests(TestCase):
 
     def test_create_user_with_email_successful(self):
@@ -83,3 +93,15 @@ class ModelTests(TestCase):
         placeType = sample_placeType()
 
         self.assertEqual(str(placeType), placeType.name)
+
+    def test_country_str(self):
+        """Test the country string representation"""
+        country = sample_country()
+
+        self.assertEqual(str(country), country.name)
+
+    def test_region_str(self):
+        """Test the country string representation"""
+        region = sample_region()
+
+        self.assertEqual(str(region), region.name)
