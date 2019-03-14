@@ -72,3 +72,39 @@ class PrivatePlaceApiTests(TestCase):
         res = self.client.post(PLACETYPE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PrivatePlaceApiAsAdminTests(TestCase):
+    """Test API as admin"""
+
+    def setUp(self):
+        self.user = create_superuser(
+                        email='admin@ulb.ac.be',
+                        password='test123'
+                    )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_placetype(self):
+        """Test creating a place type"""
+        payload = {'name': 'place type test name'}
+
+        res = self.client.post(PLACETYPE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        family = models.PlaceType.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(family, key))
+
+    def test_update_placetype(self):
+        """Test updating family"""
+        placeType = sample_placeType()
+        payload = {'name': 'new place type name'}
+
+        url = detail_placetype_url(placeType.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        placeType.refresh_from_db()
+
+        self.assertEqual(placeType.name, payload['name'])
