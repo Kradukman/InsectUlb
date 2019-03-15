@@ -37,50 +37,48 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
 
-class PlantFamilies(models.Model):
-    """Plant family"""
+class BaseModel(models.Model):
     name = models.CharField(max_length=255, blank=False)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        abstract = True
 
-class PlantGenes(models.Model):
+
+class PlantFamilies(BaseModel):
+    """Plant family"""
+
+
+class PlantGenes(BaseModel):
     """Plant gene"""
-    name = models.CharField(max_length=255, blank=False)
     family = models.ForeignKey(PlantFamilies, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.name
 
-
-class PlantSpecies(models.Model):
+class PlantSpecies(BaseModel):
     """Plant species"""
-    name = models.CharField(max_length=255, blank=False)
     gene = models.ForeignKey(PlantGenes, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.name
 
-
-class PlaceType(models.Model):
+class PlaceType(BaseModel):
     """Place type"""
-    name = models.CharField(max_length=255, blank=False)
-
-    def __str__(self):
-        return self.name
 
 
-class Country(models.Model):
-    name = models.CharField(max_length=200, blank=False)
-
-    def __str__(self):
-        return self.name
+class Country(BaseModel):
+    """Country"""
 
 
-class Region(models.Model):
-    name = models.CharField(max_length=200, blank=False)
+class Region(BaseModel):
+    """Region"""
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.name
+
+class City(BaseModel):
+    """City"""
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+
+class Town(BaseModel):
+    """Town"""
+    city = models.ForeignKey(City, on_delete=models.CASCADE)

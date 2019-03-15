@@ -8,7 +8,10 @@ from core import models
 from user.tests.test_user_api import create_superuser, sample_user
 from core.tests.test_models import (
         sample_placeType,
-        sample_country
+        sample_country,
+        sample_region,
+        sample_city,
+        sample_town
     )
 
 from place import serializers
@@ -17,6 +20,12 @@ from place import serializers
 PLACETYPE_URL = reverse('place:placetype-list')
 
 COUNTRY_URL = reverse('place:country-list')
+
+REGION_URL = reverse('place:region-list')
+
+CITY_URL = reverse('place:city-list')
+
+TOWN_URL = reverse('place:town-list')
 
 
 def detail_placetype_url(placetype_id):
@@ -27,6 +36,21 @@ def detail_placetype_url(placetype_id):
 def detail_country_url(country_id):
     """Return the detail url for a coutry"""
     return reverse('place:country-detail', args=[country_id])
+
+
+def detail_region_url(region_id):
+    """Return the detail url for a region"""
+    return reverse('place:region-detail', args=[region_id])
+
+
+def detail_city_url(city_id):
+    """Return the detail url for a city"""
+    return reverse('place:city-detail', args=[city_id])
+
+
+def detail_town_url(town_id):
+    """Return the detail url for a town"""
+    return reverse('place:town-detail', args=[town_id])
 
 
 class PublicPlaceApiTests(TestCase):
@@ -43,6 +67,24 @@ class PublicPlaceApiTests(TestCase):
     def test_country_auth_required(self):
         """Test authentification is required"""
         res = self.client.get(COUNTRY_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_region_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(REGION_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_city_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(CITY_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_town_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(TOWN_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -119,6 +161,105 @@ class PrivatePlaceApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_list_region(self):
+        """Test listing region"""
+        sample_region()
+        sample_region(name='test 2')
+
+        res = self.client.get(REGION_URL)
+
+        regions = models.Region.objects.all().order_by('id')
+        serializer = serializers.RegionSerializer(regions, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_region(self):
+        """Test retrieving a region"""
+        region = sample_region()
+
+        url = detail_region_url(region.id)
+        res = self.client.get(url)
+
+        serializer = serializers.RegionSerializer(region)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_region_admin_required(self):
+        """Test admin is required"""
+        country = sample_country()
+        payload = {'name': 'region test name', 'country_id': country.id}
+
+        res = self.client.post(REGION_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_city(self):
+        """Test listing city"""
+        sample_city()
+        sample_city(name='test 2')
+
+        res = self.client.get(CITY_URL)
+
+        citys = models.City.objects.all().order_by('id')
+        serializer = serializers.CitySerializer(citys, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_city(self):
+        """Test retrieving a city"""
+        city = sample_city()
+
+        url = detail_city_url(city.id)
+        res = self.client.get(url)
+
+        serializer = serializers.CitySerializer(city)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_city_admin_required(self):
+        """Test admin is required"""
+        region = sample_region()
+        payload = {'name': 'city test name', 'region_id': region.id}
+
+        res = self.client.post(CITY_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_town(self):
+        """Test listing town"""
+        sample_town()
+        sample_town(name='test 2')
+
+        res = self.client.get(TOWN_URL)
+
+        towns = models.Town.objects.all().order_by('id')
+        serializer = serializers.TownSerializer(towns, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_town(self):
+        """Test retrieving a town"""
+        town = sample_town()
+
+        url = detail_town_url(town.id)
+        res = self.client.get(url)
+
+        serializer = serializers.TownSerializer(town)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_town_admin_required(self):
+        """Test admin is required"""
+        city = sample_city()
+        payload = {'name': 'town test name', 'city_id': city.id}
+
+        res = self.client.post(TOWN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class PrivatePlaceApiAsAdminTests(TestCase):
     """Test API as admin"""
@@ -183,7 +324,7 @@ class PrivatePlaceApiAsAdminTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_country(self):
-        """Test updating family"""
+        """Test updating country"""
         country = sample_country()
         payload = {'name': 'new country name'}
 
@@ -194,3 +335,108 @@ class PrivatePlaceApiAsAdminTests(TestCase):
         country.refresh_from_db()
 
         self.assertEqual(country.name, payload['name'])
+
+    def test_create_region(self):
+        """Test creating a region"""
+        country = sample_country()
+        payload = {'name': 'region test name', 'country_id': country.id}
+
+        res = self.client.post(REGION_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        region = models.Region.objects.get(id=res.data['id'])
+        self.assertEqual(region.name, payload['name'])
+        self.assertEqual(region.country.id, payload['country_id'])
+
+    def test_create_region_no_name_fail(self):
+        """Test creating a region without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(REGION_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_region(self):
+        """Test updating region"""
+        region = sample_region()
+        country = sample_country(name='other country')
+        payload = {'name': 'new region name', 'country_id': country.id}
+
+        url = detail_region_url(region.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        region.refresh_from_db()
+
+        self.assertEqual(region.name, payload['name'])
+        self.assertEqual(region.country.id, payload['country_id'])
+
+    def test_create_city(self):
+        """Test creating a city"""
+        region = sample_region()
+        payload = {'name': 'city test name', 'region_id': region.id}
+
+        res = self.client.post(CITY_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        city = models.City.objects.get(id=res.data['id'])
+        self.assertEqual(city.name, payload['name'])
+        self.assertEqual(city.region.id, payload['region_id'])
+
+    def test_create_city_no_name_fail(self):
+        """Test creating a city without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(CITY_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_city(self):
+        """Test updating city"""
+        city = sample_city()
+        region = sample_region(name='other region')
+        payload = {'name': 'new city name', 'region_id': region.id}
+
+        url = detail_city_url(city.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        city.refresh_from_db()
+
+        self.assertEqual(city.name, payload['name'])
+        self.assertEqual(city.region.id, payload['region_id'])
+
+    def test_create_town(self):
+        """Test creating a town"""
+        city = sample_city()
+        payload = {'name': 'town test name', 'city_id': city.id}
+
+        res = self.client.post(TOWN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        town = models.Town.objects.get(id=res.data['id'])
+        self.assertEqual(town.name, payload['name'])
+        self.assertEqual(town.city.id, payload['city_id'])
+
+    def test_create_town_no_name_fail(self):
+        """Test creating a town without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(TOWN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_town(self):
+        """Test updating town"""
+        town = sample_town()
+        city = sample_city(name='other city')
+        payload = {'name': 'new town name', 'city_id': city.id}
+
+        url = detail_town_url(town.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        town.refresh_from_db()
+
+        self.assertEqual(town.name, payload['name'])
+        self.assertEqual(town.city.id, payload['city_id'])

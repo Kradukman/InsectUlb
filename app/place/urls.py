@@ -9,6 +9,9 @@ app_name = 'place'
 router = DefaultRouter()
 router.register('placetype', views.PlaceTypeViewset)
 router.register('country', views.CountryViewset)
+router.register('region', views.RegionViewset)
+router.register('city', views.CityViewset)
+router.register('town', views.TownViewset)
 
 urlpatterns = [
     path('', include(router.urls)),
