@@ -104,7 +104,7 @@ class PrivatePlantApiTests(TestCase):
     def test_gene_admin_required(self):
         """Test admin is required"""
         family = sample_plantFamily()
-        payload = {'name': 'gene test name', 'family_id': family.id}
+        payload = {'name': 'gene test name', 'family': family.id}
 
         res = self.client.post(GENE_URL, payload)
 
@@ -113,7 +113,7 @@ class PrivatePlantApiTests(TestCase):
     def test_specie_admin_required(self):
         """Test admin is required"""
         gene = sample_plantGene()
-        payload = {'name': 'specie test name', 'gene_id': gene.id}
+        payload = {'name': 'specie test name', 'gene': gene.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
@@ -214,14 +214,14 @@ class PrivatePlantApiAsAdminTests(TestCase):
     def test_create_gene(self):
         """Test creating a gene"""
         family = sample_plantFamily()
-        payload = {'name': 'gene test name', 'family_id': family.id}
+        payload = {'name': 'gene test name', 'family': family.id}
 
         res = self.client.post(GENE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         gene = models.PlantGenes.objects.get(id=res.data['id'])
         self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.family.id, payload['family_id'])
+        self.assertEqual(gene.family.id, payload['family'])
 
     def test_create_gene_no_name_fail(self):
         """Test creating a gene without name should fail"""
@@ -235,7 +235,7 @@ class PrivatePlantApiAsAdminTests(TestCase):
         """Test updating gene²"""
         gene = sample_plantGene()
         family = sample_plantFamily(name='other family')
-        payload = {'name': 'new gene name', 'family_id': family.id}
+        payload = {'name': 'new gene name', 'family': family.id}
 
         url = detail_gene_url(gene.id)
         res = self.client.patch(url, payload)
@@ -244,19 +244,19 @@ class PrivatePlantApiAsAdminTests(TestCase):
         gene.refresh_from_db()
 
         self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.family.id, payload['family_id'])
+        self.assertEqual(gene.family.id, payload['family'])
 
     def test_create_specie(self):
         """Test creating a specie"""
         gene = sample_plantGene()
-        payload = {'name': 'specie test name', 'gene_id': gene.id}
+        payload = {'name': 'specie test name', 'gene': gene.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         specie = models.PlantSpecies.objects.get(id=res.data['id'])
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene_id'])
+        self.assertEqual(specie.gene.id, payload['gene'])
 
     def test_create_specie_no_name_fail(self):
         """Test creating a specie without name should fail"""
@@ -267,10 +267,10 @@ class PrivatePlantApiAsAdminTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_specie(self):
-        """Test updating specie²"""
+        """Test updating specie"""
         specie = sample_plantSpecie()
         gene = sample_plantGene(name='other gene')
-        payload = {'name': 'new specie name', 'gene_id': gene.id}
+        payload = {'name': 'new specie name', 'gene': gene.id}
 
         url = detail_specie_url(specie.id)
         res = self.client.patch(url, payload)
@@ -279,4 +279,4 @@ class PrivatePlantApiAsAdminTests(TestCase):
         specie.refresh_from_db()
 
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene_id'])
+        self.assertEqual(specie.gene.id, payload['gene'])

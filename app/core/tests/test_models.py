@@ -46,6 +46,32 @@ def sample_town(name='test town', city=None):
     return models.Town.objects.create(name=name, city=city)
 
 
+def create_user(**params):
+    return get_user_model().objects.create_user(**params)
+
+
+def create_superuser(**params):
+    return get_user_model().objects.create_superuser(**params)
+
+
+def sample_user(
+                    email='sampletest@ulb.ac.be',
+                    password='testpass123',
+                    name='test1'
+                ):
+    return create_user(email=email, password=password, name=name)
+
+
+def sample_project(name='test project', projectLeader=None):
+    if projectLeader is None:
+        projectLeader = sample_user()
+    beginYear = 2010
+    return models.Project.objects.create(
+            name=name,
+            projectLeader=projectLeader,
+            beginYear=beginYear)
+
+
 class ModelTests(TestCase):
 
     def test_create_user_with_email_successful(self):

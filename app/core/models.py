@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 
@@ -82,3 +83,15 @@ class City(BaseModel):
 class Town(BaseModel):
     """Town"""
     city = models.ForeignKey(City, on_delete=models.CASCADE)
+
+
+class Project(BaseModel):
+    """Project"""
+    abreviation = models.CharField(max_length=255)
+    projectLeader = models.ForeignKey(
+                        get_user_model(),
+                        on_delete=models.CASCADE
+                    )
+    beginYear = models.IntegerField()
+    endYear = models.IntegerField(null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)

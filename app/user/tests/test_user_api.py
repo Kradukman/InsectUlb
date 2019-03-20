@@ -7,6 +7,12 @@ from rest_framework import status
 
 from user.serializers import UserSerializer
 
+from core.tests.test_models import (
+            create_user,
+            create_superuser,
+            sample_user
+        )
+
 
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
@@ -16,22 +22,6 @@ USER_URL = reverse('user:user-list')
 def detail_url(user_id):
     """Return user detail URL"""
     return reverse('user:user-detail', args=[user_id])
-
-
-def create_user(**params):
-    return get_user_model().objects.create_user(**params)
-
-
-def create_superuser(**params):
-    return get_user_model().objects.create_superuser(**params)
-
-
-def sample_user(
-                    email='sampletest@ulb.ac.be',
-                    password='testpass123',
-                    name='test1'
-                ):
-    return create_user(email=email, password=password, name=name)
 
 
 class PublicUserApiTests(TestCase):
