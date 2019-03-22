@@ -1,11 +1,14 @@
 from rest_framework import serializers
+from project.serializers import ProjectSerializer
 
 from core.models import (
                     PlaceType,
                     Country,
                     Region,
                     City,
-                    Town
+                    Town,
+                    Place,
+                    Project
                 )
 
 
@@ -54,7 +57,7 @@ class CitySerializer(serializers.ModelSerializer):
 
 
 class TownSerializer(serializers.ModelSerializer):
-    """Serializer for plant Town objects"""
+    """Serializer for Town objects"""
     city = serializers.PrimaryKeyRelatedField(
                             many=False, queryset=City.objects.all()
                         )
@@ -64,3 +67,59 @@ class TownSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'city')
         read_only_fields = ('id',)
         required_fields = ('name', 'city')
+
+
+class PlaceSerializer(serializers.ModelSerializer):
+    """Serializer for place objects"""
+    projects = serializers.PrimaryKeyRelatedField(
+                            many=True, queryset=Project.objects.all()
+                        )
+    type = serializers.PrimaryKeyRelatedField(
+                            many=False, queryset=PlaceType.objects.all()
+                        )
+    town = serializers.PrimaryKeyRelatedField(
+                            many=False,
+                            queryset=Town.objects.all()
+                        )
+
+    class Meta:
+        model = Place
+        fields = (
+                'id',
+                'name',
+                'type',
+                'town',
+                'codeSite',
+                'projects',
+                'comment',
+                'latitudeLambert72',
+                'longitudeLambert72',
+                'latitudeDec',
+                'longitudeDec'
+            )
+        read_only_fields = ('id',)
+        # required_fields = (
+        #         'name',
+        #         'type',
+        #         'codeSite',
+        #         'town',
+        #         'latitudeDec',
+        #         'longitudeDec'
+        #     )
+
+
+class PlaceDetailSerializer(PlaceSerializer):
+    """Serialize a place detail"""
+    projects = ProjectSerializer(many=True)
+    town = TownSerializer(many=False)
+    type = PlaceTypeSerializer(many=False)
+
+    def create(self, validated_data):
+        pass
+
+    def add_project(self, place_id, project_id):
+        project = Project.objects.get(id=project_id)
+        place = Place.objects.get(id=place_id)
+        place.projects.add(project)
+        place.save()
+        return place

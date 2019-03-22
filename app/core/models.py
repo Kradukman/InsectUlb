@@ -95,3 +95,26 @@ class Project(BaseModel):
     beginYear = models.IntegerField()
     endYear = models.IntegerField(null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
+
+
+class Place(BaseModel):
+    """Place"""
+    type = models.ForeignKey(PlaceType, on_delete=models.CASCADE)
+    comment = models.CharField(max_length=200, null=True, blank=True)
+    codeSite = models.CharField(max_length=200)
+    town = models.ForeignKey(Town, on_delete=models.CASCADE)
+    latitudeLambert72 = models.DecimalField(
+            max_digits=13,
+            decimal_places=10,
+            null=True,
+            blank=True
+        )
+    longitudeLambert72 = models.DecimalField(
+            max_digits=13,
+            decimal_places=10,
+            null=True,
+            blank=True
+        )
+    latitudeDec = models.DecimalField(max_digits=13, decimal_places=10)
+    longitudeDec = models.DecimalField(max_digits=13, decimal_places=10)
+    projects = models.ManyToManyField(Project)

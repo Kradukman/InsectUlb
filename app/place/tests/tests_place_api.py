@@ -11,7 +11,9 @@ from core.tests.test_models import (
         sample_country,
         sample_region,
         sample_city,
-        sample_town
+        sample_town,
+        sample_place,
+        sample_project
     )
 
 from place import serializers
@@ -27,7 +29,7 @@ CITY_URL = reverse('place:city-list')
 
 TOWN_URL = reverse('place:town-list')
 
-# PLACE_URL = reverse('place:place-list')
+PLACE_URL = reverse('place:place-list')
 
 
 def detail_placetype_url(placetype_id):
@@ -55,9 +57,19 @@ def detail_town_url(town_id):
     return reverse('place:town-detail', args=[town_id])
 
 
-# def detail_place_url(town_id):
-#     """Return the detail url for a place"""
-#     return reverse('place:place-detail', args=[place_id])
+def detail_place_url(place_id):
+    """Return the detail url for a place"""
+    return reverse('place:place-detail', args=[place_id])
+
+
+def add_project_place_url(place_id):
+    """ Return the url to add a project to a place"""
+    return reverse('place:place-add_project', args=[place_id])
+#
+#
+# def remove_project_place_url(place_id):
+#     """ Return the url to remove a project to a place"""
+#     return reverse('place:place-removeProject', args=[place_id])
 
 
 class PublicPlaceApiTests(TestCase):
@@ -95,11 +107,11 @@ class PublicPlaceApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # def test_place_auth_required(self):
-    #     """Test authentification is required"""
-    #     res = self.client.get(TOWN_URL)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_place_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(PLACE_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PrivatePlaceApiTests(TestCase):
@@ -178,7 +190,6 @@ class PrivatePlaceApiTests(TestCase):
         """Test listing region"""
         sample_region()
         sample_region(name='test 2')
-
         res = self.client.get(REGION_URL)
 
         regions = models.Region.objects.all().order_by('id')
@@ -273,38 +284,54 @@ class PrivatePlaceApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    # def test_list_place(self):
+    def test_list_place(self):
+        """Test listing place"""
+        sample_place()
+        sample_place(name='test 2')
+
+        res = self.client.get(PLACE_URL)
+
+        places = models.Place.objects.all().order_by('id')
+        serializer = serializers.PlaceSerializer(places, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    # def test_list_place_with_project(self):
     #     """Test listing place"""
-    #     sample_place()
+    #     place1 = sample_place()
     #     sample_place(name='test 2')
-    #
+    #     project = sample_project()
+    #     print(vars(project))
+    #     place1.projects.add(project)
+    #     place1.refresh_from_db()
+    #     print(vars(place1.projects.all()))
     #     res = self.client.get(PLACE_URL)
     #
     #     places = models.Place.objects.all().order_by('id')
-    #     serializer = serializers.PlaceSerializer(places, many=True)
+    #     serializer = serializers.PlaceDeSerializer(places, many=True)
     #     self.assertEqual(res.status_code, status.HTTP_200_OK)
     #     self.assertEqual(res.data, serializer.data)
-    #
-    # def test_retrieve_place(self):
-    #     """Test retrieving a place"""
-    #     place = sample_place()
-    #
-    #     url = detail_place_url(place.id)
-    #     res = self.client.get(url)
-    #
-    #     serializer = serializers.PlaceSerializer(place)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(res.data, serializer.data)
-    #
-    # def test_place_admin_required(self):
-    #     """Test admin is required"""
-    #     town = sample_town()
-    #     payload = {'name': 'place test name', 'town_id': town.id}
-    #
-    #     res = self.client.post(PLACE_URL, payload)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieve_place(self):
+        """Test retrieving a place"""
+        place = sample_place()
+
+        url = detail_place_url(place.id)
+        res = self.client.get(url)
+
+        serializer = serializers.PlaceDetailSerializer(place)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_place_admin_required(self):
+        """Test admin is required"""
+        town = sample_town()
+        payload = {'name': 'place test name', 'town': town.id}
+
+        res = self.client.post(PLACE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class PrivatePlaceApiAsAdminTests(TestCase):
@@ -487,40 +514,64 @@ class PrivatePlaceApiAsAdminTests(TestCase):
         self.assertEqual(town.name, payload['name'])
         self.assertEqual(town.city.id, payload['city'])
 
-    # def test_create_place(self):
-    #     """Test creating a place"""
-    #     town = sample_town()
-    #     type = sample_placeType()
-    #     latDec = 10.2
-    #     lonDec = -20.1
-    #     payload = {'name': 'place test name', 'town_id': town.id}
-    #
-    #     res = self.client.post(PLACE_URL, payload)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-    #     place = models.Place.objects.get(id=res.data['id'])
-    #     self.assertEqual(place.name, payload['name'])
-    #     self.assertEqual(place.town.id, payload['town_id'])
-    #
-    # def test_create_place_no_name_fail(self):
-    #     """Test creating a place without name should fail"""
-    #     payload = {'name': ''}
-    #
-    #     res = self.client.post(PLACE_URL, payload)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_update_place(self):
-    #     """Test updating place"""
-    #     place = sample_place()
-    #     town = sample_town(name='other town')
-    #     payload = {'name': 'new place name', 'town_id': town.id}
-    #
-    #     url = detail_place_url(place.id)
-    #     res = self.client.patch(url, payload)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-    #     place.refresh_from_db()
-    #
-    #     self.assertEqual(place.name, payload['name'])
-    #     self.assertEqual(place.town.id, payload['town_id'])
+    def test_create_place(self):
+        """Test creating a place"""
+        town = sample_town()
+        type = sample_placeType()
+        payload = {
+                'name': 'place test name',
+                'town': town.id,
+                'type': type.id,
+                'codeSite': 10,
+                'latitudeDec': 10.1,
+                'longitudeDec': 9.1
+            }
+
+        res = self.client.post(PLACE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        place = models.Place.objects.get(id=res.data['id'])
+        self.assertEqual(place.name, payload['name'])
+        self.assertEqual(place.town.id, payload['town'])
+
+    def test_create_place_no_name_fail(self):
+        """Test creating a place without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(PLACE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_place(self):
+        """Test updating place"""
+        place = sample_place()
+        town = sample_town(name='other town')
+        payload = {'name': 'new place name', 'town': town.id}
+
+        url = detail_place_url(place.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        place.refresh_from_db()
+
+        self.assertEqual(place.name, payload['name'])
+        self.assertEqual(place.town.id, payload['town'])
+
+    def test_add_project_to_place(self):
+        """Test adding a project to a place"""
+        place = sample_place()
+        project = sample_project()
+        payload = {'project': project.id}
+
+        url = add_project_place_url(place.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        place.refresh_from_db()
+        projects = place.projects.all()
+        projectSerializer = serializers.ProjectSerializer(projects, many=True)
+        self.assertEqual(
+                serializers.ProjectSerializer(project)
+                .data,
+                projectSerializer.data[0]
+            )
