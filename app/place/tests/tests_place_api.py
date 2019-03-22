@@ -65,11 +65,16 @@ def detail_place_url(place_id):
 def add_project_place_url(place_id):
     """ Return the url to add a project to a place"""
     return reverse('place:place-add_project', args=[place_id])
-#
-#
-# def remove_project_place_url(place_id):
-#     """ Return the url to remove a project to a place"""
-#     return reverse('place:place-removeProject', args=[place_id])
+
+
+def update_attribute_place_url(place_id):
+    """ Return the url to add a project to a place"""
+    return reverse('place:place-update_attribute', args=[place_id])
+
+
+def remove_project_place_url(place_id):
+    """ Return the url to remove a project to a place"""
+    return reverse('place:place-remove_project', args=[place_id])
 
 
 class PublicPlaceApiTests(TestCase):
@@ -574,4 +579,52 @@ class PrivatePlaceApiAsAdminTests(TestCase):
                 serializers.ProjectSerializer(project)
                 .data,
                 projectSerializer.data[0]
+            )
+
+    def test_remove_project_to_place(self):
+        """Test removing a project from a place"""
+        place = sample_place()
+        project = sample_project()
+        place.projects.add(project)
+        payload = {'project': project.id}
+
+        url = remove_project_place_url(place.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        place.refresh_from_db()
+        projects = place.projects.all()
+        self.assertEqual(projects.count(), 0)
+
+    def test_update_attribute_of_place(self):
+        """Test update project, town or type a place"""
+        place = sample_place()
+        oldProject = sample_project()
+        place.projects.add(oldProject)
+        newProject = sample_project('new project')
+        town = sample_town('new town')
+        payload = {
+                'old_project_id': oldProject.id,
+                'new_project_id': newProject.id,
+                'town_id': town.id
+            }
+
+        url = update_attribute_place_url(place.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        place.refresh_from_db()
+        projects = place.projects.all()
+        projectSerializer = serializers.ProjectSerializer(projects, many=True)
+        self.assertEqual(
+                serializers.ProjectSerializer(newProject)
+                .data,
+                projectSerializer.data[0]
+            )
+        town = place.town
+        townSerializer = serializers.TownSerializer(town)
+        self.assertEqual(
+                serializers.TownSerializer(town)
+                .data,
+                townSerializer.data
             )

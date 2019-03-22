@@ -123,3 +123,35 @@ class PlaceDetailSerializer(PlaceSerializer):
         place.projects.add(project)
         place.save()
         return place
+
+    def remove_project(self, place_id, project_id):
+        project = Project.objects.get(id=project_id)
+        place = Place.objects.get(id=place_id)
+        place.projects.remove(project)
+        place.save()
+        return place
+
+    def update_attribute(
+        self,
+        place_id,
+        old_project_id=None,
+        project_id=None,
+        town_id=None,
+        type_id=None
+    ):
+        place = Place.objects.get(id=place_id)
+        if project_id and old_project_id is not None:
+            project = Project.objects.get(id=old_project_id)
+            place.projects.remove(project)
+            project = Project.objects.get(id=project_id)
+            place.projects.add(project)
+        if type_id is not None:
+            type = PlaceType.objects.get(id=type_id)
+            place.type = type
+            place.save()
+        if town_id is not None:
+            town = Town.objects.get(id=town_id)
+            place.town = town
+            place.save()
+
+        return place
