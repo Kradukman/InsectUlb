@@ -40,7 +40,8 @@ class ProjectViewset(BasePermissionsViewset):
             'partial_update',
             'add_project',
             'remove_project',
-            'update_attribute'
+            'update_attribute',
+            'assign_place'
         ]:
             self.permission_classes = [permissions.IsAdminUser, ]
         return [permission() for permission in self.permission_classes]
@@ -50,6 +51,7 @@ class ProjectViewset(BasePermissionsViewset):
         if self.action in [
             'retrieve',
             'assign_user',
+            'assign_place'
         ]:
             return serializers.ProjectDetailSerializer
         return self.serializer_class
@@ -67,6 +69,24 @@ class ProjectViewset(BasePermissionsViewset):
         project = serializer.assign_user(
                 project_id=pk,
                 user_id=self.request.data['user_id']
+            )
+        projectSerializer = serializers.ProjectDetailSerializer(project)
+        response['data'] = projectSerializer.data
+        return Response(response)
+
+    @action(
+        methods=['patch'],
+        detail=True,
+        url_path='assign-place',
+        url_name='assign_place'
+    )
+    def assign_place(self, request, pk=None):
+        response = {}
+        # get serializer
+        serializer = self.get_serializer()
+        project = serializer.assign_place(
+                project_id=pk,
+                place_id=self.request.data['place_id']
             )
         projectSerializer = serializers.ProjectDetailSerializer(project)
         response['data'] = projectSerializer.data

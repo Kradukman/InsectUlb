@@ -8,7 +8,8 @@ from core import models
 from user.tests.test_user_api import create_superuser
 from core.tests.test_models import (
         sample_project,
-        sample_user
+        sample_user,
+        sample_place
     )
 
 from project import serializers
@@ -25,6 +26,11 @@ def detail_project_url(project_id):
 def assign_user_project_url(project_id):
     """Return the url to assign a user to a project"""
     return reverse('project:project-assign_user', args=[project_id])
+
+
+def assign_place_project_url(project_id):
+    """Return the url to assign a place to a project"""
+    return reverse('project:project-assign_place', args=[project_id])
 
 
 class PublicPlaceApiTests(TestCase):
@@ -187,3 +193,17 @@ class PrivateProjectApiAsAdminTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         project.refresh_from_db()
         self.assertIn(user, project.members.all())
+
+    def test_assign_place_to_project(self):
+        """Test assign place to a project"""
+        project = sample_project(projectLeader=self.user)
+        place = sample_place()
+
+        payload = {'place_id': place.id}
+        url = assign_place_project_url(project.id)
+
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertIn(place, project.places.all())

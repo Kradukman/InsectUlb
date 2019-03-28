@@ -1,9 +1,15 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from core.models import Project, ProjectMembership
+from core.models import (
+                    Project,
+                    ProjectMembership,
+                    Place
+                )
 
 from user.serializers import UserSerializer
+
+from place.serializers import PlaceDetailSerializer
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -14,12 +20,16 @@ class ProjectSerializer(serializers.ModelSerializer):
     # members = serializers.PrimaryKeyRelatedField(
     #                         many=True,
     #                         queryset=ProjectMembership.objects.all())
+    places = serializers.PrimaryKeyRelatedField(
+                            many=True, queryset=Place.objects.all()
+                        )
 
     class Meta:
         model = Project
         fields = (
                     'id',
                     'name',
+                    'places',
                     'abreviation',
                     'beginYear',
                     'endYear',
@@ -50,6 +60,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     """Serializer for project object"""
     projectLeader = UserSerializer(many=False)
     members = UserSerializer(many=True)
+    places = PlaceDetailSerializer(many=True)
 
     class Meta:
         model = Project
@@ -57,6 +68,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
                     'id',
                     'name',
                     'members',
+                    'places',
                     'abreviation',
                     'beginYear',
                     'endYear',
@@ -77,4 +89,10 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
                                 project=project,
                                 is_active=True
                             )
+        return project
+
+    def assign_place(self, project_id, place_id):
+        project = Project.objects.get(id=project_id)
+        place = Place.objects.get(id=place_id)
+        project.places.add(place)
         return project
