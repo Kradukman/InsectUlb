@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from project.serializers import ProjectSerializer
 
 from core.models import (
                     PlaceType,
@@ -8,7 +7,6 @@ from core.models import (
                     City,
                     Town,
                     Place,
-                    Project
                 )
 
 
@@ -71,9 +69,6 @@ class TownSerializer(serializers.ModelSerializer):
 
 class PlaceSerializer(serializers.ModelSerializer):
     """Serializer for place objects"""
-    projects = serializers.PrimaryKeyRelatedField(
-                            many=True, queryset=Project.objects.all()
-                        )
     type = serializers.PrimaryKeyRelatedField(
                             many=False, queryset=PlaceType.objects.all()
                         )
@@ -90,7 +85,6 @@ class PlaceSerializer(serializers.ModelSerializer):
                 'type',
                 'town',
                 'codeSite',
-                'projects',
                 'comment',
                 'latitudeLambert72',
                 'longitudeLambert72',
@@ -98,53 +92,43 @@ class PlaceSerializer(serializers.ModelSerializer):
                 'longitudeDec'
             )
         read_only_fields = ('id',)
-        # required_fields = (
-        #         'name',
-        #         'type',
-        #         'codeSite',
-        #         'town',
-        #         'latitudeDec',
-        #         'longitudeDec'
-        #     )
 
 
 class PlaceDetailSerializer(PlaceSerializer):
     """Serialize a place detail"""
-    projects = ProjectSerializer(many=True)
+    # projects = ProjectSerializer(many=True)
     town = TownSerializer(many=False)
     type = PlaceTypeSerializer(many=False)
 
     def create(self, validated_data):
         pass
 
-    def add_project(self, place_id, project_id):
-        project = Project.objects.get(id=project_id)
-        place = Place.objects.get(id=place_id)
-        place.projects.add(project)
-        place.save()
-        return place
-
-    def remove_project(self, place_id, project_id):
-        project = Project.objects.get(id=project_id)
-        place = Place.objects.get(id=place_id)
-        place.projects.remove(project)
-        place.save()
-        return place
+    # def add_project(self, place_id, project_id):
+    #     project = Project.objects.get(id=project_id)
+    #     place = Place.objects.get(id=place_id)
+    #     place.projects.add(project)
+    #     place.save()
+    #     return place
+    #
+    # def remove_project(self, place_id, project_id):
+    #     project = Project.objects.get(id=project_id)
+    #     place = Place.objects.get(id=place_id)
+    #     place.projects.remove(project)
+    #     place.save()
+    #     return place
 
     def update_attribute(
         self,
         place_id,
-        old_project_id=None,
-        project_id=None,
         town_id=None,
         type_id=None
     ):
         place = Place.objects.get(id=place_id)
-        if project_id and old_project_id is not None:
-            project = Project.objects.get(id=old_project_id)
-            place.projects.remove(project)
-            project = Project.objects.get(id=project_id)
-            place.projects.add(project)
+        # if project_id and old_project_id is not None:
+        #     project = Project.objects.get(id=old_project_id)
+        #     place.projects.remove(project)
+        #     project = Project.objects.get(id=project_id)
+        #     place.projects.add(project)
         if type_id is not None:
             type = PlaceType.objects.get(id=type_id)
             place.type = type

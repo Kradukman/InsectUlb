@@ -51,41 +51,41 @@ class PlaceViewset(BasePermissionsViewset):
     serializer_class = serializers.PlaceSerializer
     queryset = Place.objects.all()
 
-    @action(
-        methods=['patch'],
-        detail=True,
-        url_path='add-project',
-        url_name='add_project'
-    )
-    def add_project(self, request, pk=None):
-        response = {}
-        # get serializer
-        serializer = self.get_serializer()
-        place = serializer.add_project(
-                place_id=pk,
-                project_id=self.request.data['project']
-            )
-        placeSerializer = serializers.PlaceDetailSerializer(place)
-        response['data'] = placeSerializer.data
-        return Response(response)
+    # @action(
+    #     methods=['patch'],
+    #     detail=True,
+    #     url_path='add-project',
+    #     url_name='add_project'
+    # )
+    # def add_project(self, request, pk=None):
+    #     response = {}
+    #     # get serializer
+    #     serializer = self.get_serializer()
+    #     place = serializer.add_project(
+    #             place_id=pk,
+    #             project_id=self.request.data['project']
+    #         )
+    #     placeSerializer = serializers.PlaceDetailSerializer(place)
+    #     response['data'] = placeSerializer.data
+    #     return Response(response)
 
-    @action(
-        methods=['patch'],
-        detail=True,
-        url_path='remove-project',
-        url_name='remove_project'
-    )
-    def remove_project(self, request, pk=None):
-        response = {}
-        # get serializer
-        serializer = self.get_serializer()
-        place = serializer.remove_project(
-                place_id=pk,
-                project_id=self.request.data['project']
-            )
-        placeSerializer = serializers.PlaceDetailSerializer(place)
-        response['data'] = placeSerializer.data
-        return Response(response)
+    # @action(
+    #     methods=['patch'],
+    #     detail=True,
+    #     url_path='remove-project',
+    #     url_name='remove_project'
+    # )
+    # def remove_project(self, request, pk=None):
+    #     response = {}
+    #     # get serializer
+    #     serializer = self.get_serializer()
+    #     place = serializer.remove_project(
+    #             place_id=pk,
+    #             project_id=self.request.data['project']
+    #         )
+    #     placeSerializer = serializers.PlaceDetailSerializer(place)
+    #     response['data'] = placeSerializer.data
+    #     return Response(response)
 
     @action(
         methods=['patch'],
@@ -96,16 +96,14 @@ class PlaceViewset(BasePermissionsViewset):
     def update_attribute(self, request, pk=None):
         """Update foreignkey and many to many fields"""
         response = {}
-        old_project_id = None
-        new_project_id = None
         town_id = None
         type_id = None
-        if 'old_project_id' in self.request.data:
-            if self.request.data['old_project_id'] is not None:
-                old_project_id = self.request.data['old_project_id']
-        if 'new_project_id' in self.request.data:
-            if self.request.data['new_project_id'] is not None:
-                new_project_id = self.request.data['new_project_id']
+        # if 'old_project_id' in self.request.data:
+        #     if self.request.data['old_project_id'] is not None:
+        #         old_project_id = self.request.data['old_project_id']
+        # if 'new_project_id' in self.request.data:
+        #     if self.request.data['new_project_id'] is not None:
+        #         new_project_id = self.request.data['new_project_id']
         if 'town_id' in self.request.data:
             if self.request.data['town_id'] is not None:
                 town_id = self.request.data['town_id']
@@ -116,8 +114,6 @@ class PlaceViewset(BasePermissionsViewset):
         serializer = self.get_serializer()
         place = serializer.update_attribute(
                 place_id=pk,
-                old_project_id=old_project_id,
-                project_id=new_project_id,
                 type_id=type_id,
                 town_id=town_id
             )

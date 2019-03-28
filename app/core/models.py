@@ -85,18 +85,6 @@ class Town(BaseModel):
     city = models.ForeignKey(City, on_delete=models.CASCADE)
 
 
-class Project(BaseModel):
-    """Project"""
-    abreviation = models.CharField(max_length=255)
-    projectLeader = models.ForeignKey(
-                        get_user_model(),
-                        on_delete=models.CASCADE
-                    )
-    beginYear = models.IntegerField()
-    endYear = models.IntegerField(null=True, blank=True)
-    description = models.CharField(max_length=255, null=True, blank=True)
-
-
 class Place(BaseModel):
     """Place"""
     type = models.ForeignKey(PlaceType, on_delete=models.CASCADE)
@@ -117,4 +105,28 @@ class Place(BaseModel):
         )
     latitudeDec = models.DecimalField(max_digits=13, decimal_places=10)
     longitudeDec = models.DecimalField(max_digits=13, decimal_places=10)
-    projects = models.ManyToManyField(Project)
+
+
+class Project(BaseModel):
+    """Project"""
+    abreviation = models.CharField(max_length=255)
+    projectLeader = models.ForeignKey(
+                        get_user_model(),
+                        on_delete=models.CASCADE,
+                        related_name='projectLeader'
+                    )
+    beginYear = models.IntegerField()
+    endYear = models.IntegerField(null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    places = models.ManyToManyField(Place)
+    members = models.ManyToManyField(
+                    get_user_model(),
+                    through='ProjectMembership',
+                    related_name='members'
+                )
+
+
+class ProjectMembership(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=False)

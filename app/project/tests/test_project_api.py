@@ -22,6 +22,11 @@ def detail_project_url(project_id):
     return reverse('project:project-detail', args=[project_id])
 
 
+def assign_user_project_url(project_id):
+    """Return the url to assign a user to a project"""
+    return reverse('project:project-assign_user', args=[project_id])
+
+
 class PublicPlaceApiTests(TestCase):
 
     def setUp(self):
@@ -55,16 +60,19 @@ class PrivatePlaceApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_retrieve_project(self):
-        """Test retrieving a project"""
-        projectLeader = sample_user(email='otherTest@ulb.ac.be')
-        project = sample_project(projectLeader=projectLeader)
+    def test_retrieve_project_as_member(self):
+        """Test retrieving a project as a member of the project"""
+        project = sample_project()
+        models.ProjectMembership.objects.create(
+                            user=self.user,
+                            project=project,
+                            is_active=True
+                        )
 
         url = detail_project_url(project.id)
         res = self.client.get(url)
 
-        serializer = serializers.ProjectSerializer(project)
-
+        serializer = serializers.ProjectDetailSerializer(project)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
@@ -73,6 +81,20 @@ class PrivatePlaceApiTests(TestCase):
         payload = {'name': 'project test name'}
 
         res = self.client.post(PROJECT_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_view_project_fail_inactive_user(self):
+        """Test is_active in project membership required"""
+        user = sample_user(email='sample2@ulb.ac.be')
+        project = sample_project(name='my super test', projectLeader=user)
+        models.ProjectMembership.objects.create(
+                user=self.user,
+                project=project,
+                is_active=False
+            )
+        url = detail_project_url(project.id)
+        res = self.client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -138,3 +160,30 @@ class PrivateProjectApiAsAdminTests(TestCase):
                 project.projectLeader.id,
                 payload['projectLeader']
             )
+
+    def test_retrieve_project_as_admin(self):
+        """Test retrieving a project"""
+        projectLeader = sample_user(email='otherTest@ulb.ac.be')
+        project = sample_project(projectLeader=projectLeader)
+
+        url = detail_project_url(project.id)
+        res = self.client.get(url)
+
+        serializer = serializers.ProjectDetailSerializer(project)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_assign_user_to_project(self):
+        """Test assign user to a project"""
+        project = sample_project(projectLeader=self.user)
+        user = sample_user(email="legolas@ulb.ac.be")
+
+        payload = {'user_id': user.id}
+        url = assign_user_project_url(project.id)
+
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertIn(user, project.members.all())
