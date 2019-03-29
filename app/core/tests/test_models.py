@@ -6,7 +6,6 @@ from core import models
 
 
 def sample_plantFamily(name='test family'):
-    """get or create send a t-uple (instance, True/False)"""
     return models.PlantFamilies.objects.get_or_create(name=name)[0]
 
 
@@ -98,6 +97,55 @@ def sample_place(
             longitudeDec=longitudeDec,
             latitudeDec=latitudeDec
         )[0]
+
+
+def sample_insectSuperFamily(name='test insect super family'):
+    return models.InsectSuperFamilies.objects.get_or_create(name=name)[0]
+
+
+def sample_insectFamily(name='test insect family', insectSupFam=None):
+    if insectSupFam is None:
+        insectSupFam = sample_insectSuperFamily()
+    return models.InsectFamilies.objects.get_or_create(
+                                    name=name,
+                                    superFamily=insectSupFam
+                                )[0]
+
+
+def sample_insectSubFamily(name='test sub family', insectFam=None):
+    if insectFam is None:
+        insectFam = sample_insectFamily()
+    return models.InsectSubFamilies.objects.get_or_create(
+                                    name=name,
+                                    family=insectFam
+                                )[0]
+
+
+def sample_insectTribe(name='test tribe', insectSubFam=None):
+    if insectSubFam is None:
+        insectSubFam = sample_insectSubFamily()
+    return models.InsectTribes.objects.get_or_create(
+                                    name=name,
+                                    subFamily=insectSubFam
+                                )[0]
+
+
+def sample_insectGene(name='test genus', insectTribe=None):
+    if insectTribe is None:
+        insectTribe = sample_insectTribe()
+    return models.InsectGenes.objects.get_or_create(
+                                    name=name,
+                                    tribe=insectTribe
+                                )[0]
+
+
+def sample_insectSpecie(name='test specie', insectGen=None):
+    if insectGen is None:
+        insectGen = sample_insectGene()
+    return models.InsectSpecies.objects.get_or_create(
+                                    name=name,
+                                    gene=insectGen
+                                )[0]
 
 
 class ModelTests(TestCase):

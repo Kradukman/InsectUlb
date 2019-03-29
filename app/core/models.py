@@ -130,3 +130,35 @@ class ProjectMembership(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=False)
+
+
+class InsectSuperFamilies(BaseModel):
+    """Insect super families"""
+
+
+class InsectFamilies(BaseModel):
+    """Insect families"""
+    superFamily = models.ForeignKey(
+                            InsectSuperFamilies,
+                            on_delete=models.CASCADE
+                        )
+
+
+class InsectSubFamilies(BaseModel):
+    """Insect sub families"""
+    family = models.ForeignKey(InsectFamilies, on_delete=models.CASCADE)
+
+
+class InsectTribes(BaseModel):
+    """Insect tribes"""
+    subFamily = models.ForeignKey(InsectSubFamilies, on_delete=models.CASCADE)
+
+
+class InsectGenes(BaseModel):
+    """Insect genes"""
+    tribe = models.ForeignKey(InsectTribes, on_delete=models.CASCADE)
+
+
+class InsectSpecies(BaseModel):
+    """Insect species"""
+    gene = models.ForeignKey(InsectGenes, on_delete=models.CASCADE)

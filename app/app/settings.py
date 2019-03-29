@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'plant',
     'place',
     'project',
+    'insect',
 ]
 
 MIDDLEWARE = [
