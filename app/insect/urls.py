@@ -13,6 +13,7 @@ router.register('subfamilies', views.InsectSubFamiliesViewset)
 router.register('tribes', views.InsectTribesViewset)
 router.register('genes', views.InsectGenesViewset)
 router.register('species', views.InsectSpeciesViewset)
+router.register('godfather', views.InsectGodfatherViewset)
 
 urlpatterns = [
     path('', include(router.urls)),

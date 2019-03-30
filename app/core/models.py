@@ -132,6 +132,10 @@ class ProjectMembership(models.Model):
     is_active = models.BooleanField(default=False)
 
 
+class InsectGodfather(BaseModel):
+    """Insect godfahter"""
+
+
 class InsectSuperFamilies(BaseModel):
     """Insect super families"""
 
@@ -162,3 +166,12 @@ class InsectGenes(BaseModel):
 class InsectSpecies(BaseModel):
     """Insect species"""
     gene = models.ForeignKey(InsectGenes, on_delete=models.CASCADE)
+    otherName = models.CharField(max_length=255, null=True)
+    godfather = models.ForeignKey(InsectGodfather, on_delete=models.CASCADE)
+    year = models.IntegerField()
+
+
+class InsectSubGenes(models.Model):
+    """Insect sub genes is a mix info between specie and gene"""
+    gene = models.ForeignKey(InsectGenes, on_delete=models.CASCADE)
+    specie = models.ForeignKey(InsectSpecies, on_delete=models.CASCADE)

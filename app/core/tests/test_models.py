@@ -139,12 +139,24 @@ def sample_insectGene(name='test genus', insectTribe=None):
                                 )[0]
 
 
-def sample_insectSpecie(name='test specie', insectGen=None):
+def sample_insectGodfather(name='test godfather'):
+    return models.InsectGodfather.objects.get_or_create(name=name)[0]
+
+
+def sample_insectSpecie(
+                    name='test specie',
+                    insectGen=None,
+                    insectGodfather=None
+                ):
+    if insectGodfather is None:
+        insectGodfather = sample_insectGodfather()
     if insectGen is None:
         insectGen = sample_insectGene()
     return models.InsectSpecies.objects.get_or_create(
                                     name=name,
-                                    gene=insectGen
+                                    gene=insectGen,
+                                    godfather=insectGodfather,
+                                    year=2010
                                 )[0]
 
 

@@ -6,7 +6,8 @@ from core.models import (
                     InsectSubFamilies,
                     InsectTribes,
                     InsectGenes,
-                    InsectSpecies
+                    InsectSpecies,
+                    InsectGodfather
                 )
 
 
@@ -75,15 +76,28 @@ class InsectGenesSerializer(serializers.ModelSerializer):
         required_fields = ('name', 'tribe')
 
 
+class InsectGodfatherSerializer(serializers.ModelSerializer):
+    """Serializer for insect godfather objects"""
+    class Meta:
+        model = InsectGodfather
+        fields = ('id', 'name')
+        read_only_fields = ('id',)
+        required_fields = ('name')
+
+
 class InsectSpeciesSerializer(serializers.ModelSerializer):
     """Serializer for insect species objects"""
     gene = serializers.PrimaryKeyRelatedField(
                             many=False,
                             queryset=InsectGenes.objects.all()
                         )
+    godfather = serializers.PrimaryKeyRelatedField(
+                            many=False,
+                            queryset=InsectGodfather.objects.all()
+                        )
 
     class Meta:
         model = InsectSpecies
-        fields = ('id', 'name', 'gene')
+        fields = ('id', 'name', 'gene', 'godfather', 'year', 'otherName')
         read_only_fields = ('id',)
         required_fields = ('name', 'gene')

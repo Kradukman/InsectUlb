@@ -12,7 +12,8 @@ from core.tests.test_models import (
         sample_insectSubFamily,
         sample_insectTribe,
         sample_insectGene,
-        sample_insectSpecie
+        sample_insectSpecie,
+        sample_insectGodfather
     )
 
 from insect import serializers
@@ -29,6 +30,8 @@ TRIBE_URL = reverse('insect:insecttribes-list')
 GENE_URL = reverse('insect:insectgenes-list')
 
 SPECIE_URL = reverse('insect:insectspecies-list')
+
+GODFATHER_URL = reverse('insect:insectgodfather-list')
 
 
 def detail_super_family_url(supFamily_id):
@@ -59,6 +62,11 @@ def detail_gene_url(gene_id):
 def detail_specie_url(specie_id):
     """Return the detail url for insect specie"""
     return reverse('insect:insectspecies-detail', args=[specie_id])
+
+
+def detail_godfather_url(godfather_id):
+    """Return the detail url for insect godfather"""
+    return reverse('insect:insectgodfather-detail', args=[godfather_id])
 
 
 class PublicInsectApiTests(TestCase):
@@ -101,6 +109,12 @@ class PublicInsectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_godfather_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(GODFATHER_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class PrivateInsectApiTests(TestCase):
     """Test private as user"""
@@ -109,6 +123,41 @@ class PrivateInsectApiTests(TestCase):
         self.user = sample_user()
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+    def test_list_godfather(self):
+        """Test listing godfather"""
+        sample_insectGodfather()
+        sample_insectGodfather(name='test 2')
+
+        res = self.client.get(GODFATHER_URL)
+
+        godfahter = models.InsectGodfather.objects.all().order_by('id')
+        serializer = serializers.InsectGodfatherSerializer(
+                                        godfahter,
+                                        many=True
+                                    )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_godfather(self):
+        """Test retrieving a super family"""
+        godfather = sample_insectGodfather()
+
+        url = detail_godfather_url(godfather.id)
+        res = self.client.get(url)
+
+        serializer = serializers.InsectGodfatherSerializer(godfather)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_godfather_admin_required(self):
+        """Test admin is required"""
+        payload = {'name': 'godfather test name'}
+
+        res = self.client.post(GODFATHER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_super_families(self):
         """Test listing super families"""
@@ -331,6 +380,38 @@ class PrivateInsectApiAsAdminTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+    def test_create_godfather(self):
+        """Test creating a godfather"""
+        payload = {'name': 'godfather test name'}
+
+        res = self.client.post(GODFATHER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        godfather = models.InsectGodfather.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(godfather, key))
+
+    def test_create_godfather_no_name_fail(self):
+        """Test creating a godfather without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(GODFATHER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_godfather(self):
+        """Test updating godfahter"""
+        godfather = sample_insectGodfather()
+        payload = {'name': 'new godfather name'}
+
+        url = detail_godfather_url(godfather.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        godfather.refresh_from_db()
+
+        self.assertEqual(godfather.name, payload['name'])
+
     def test_create_super_family(self):
         """Test creating a super family"""
         payload = {'name': 'super family test name'}
@@ -510,7 +591,13 @@ class PrivateInsectApiAsAdminTests(TestCase):
     def test_create_specie(self):
         """Test creating a specie"""
         gene = sample_insectGene()
-        payload = {'name': 'specie test name', 'gene': gene.id}
+        godfather = sample_insectGodfather()
+        payload = {
+                    'name': 'specie test name',
+                    'gene': gene.id,
+                    'godfather': godfather.id,
+                    'year': 2010
+                }
 
         res = self.client.post(SPECIE_URL, payload)
 
@@ -532,7 +619,12 @@ class PrivateInsectApiAsAdminTests(TestCase):
         """Test updating specie"""
         specie = sample_insectSpecie()
         gene = sample_insectGene(name='other gene')
-        payload = {'name': 'new specie name', 'gene': gene.id}
+        godfather = sample_insectGodfather(name='other godfather')
+        payload = {
+                    'name': 'new specie name',
+                    'gene': gene.id,
+                    'godfather': godfather.id
+                }
 
         url = detail_specie_url(specie.id)
         res = self.client.patch(url, payload)
