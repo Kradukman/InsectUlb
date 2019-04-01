@@ -160,6 +160,10 @@ def sample_insectSpecie(
                                 )[0]
 
 
+def sample_insectTrap(name='test trap'):
+    return models.InsectTrap.objects.get_or_create(name=name)[0]
+
+
 class ModelTests(TestCase):
 
     def test_create_user_with_email_successful(self):

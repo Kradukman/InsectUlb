@@ -7,7 +7,8 @@ from core.models import (
                     InsectTribes,
                     InsectGenes,
                     InsectSpecies,
-                    InsectGodfather
+                    InsectGodfather,
+                    InsectTrap
                 )
 
 from insect import serializers
@@ -47,6 +48,12 @@ class InsectGodfatherViewset(BasePermissionsViewset):
     """Manage insect godfather as admin"""
     serializer_class = serializers.InsectGodfatherSerializer
     queryset = InsectGodfather.objects.all()
+
+
+class InsectTrapViewset(BasePermissionsViewset):
+    """Manage insect trap as admin"""
+    serializer_class = serializers.InsectTrapSerializer
+    queryset = InsectTrap.objects.all()
 
 
 class InsectSpeciesViewset(BasePermissionsViewset):

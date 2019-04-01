@@ -13,7 +13,8 @@ from core.tests.test_models import (
         sample_insectTribe,
         sample_insectGene,
         sample_insectSpecie,
-        sample_insectGodfather
+        sample_insectGodfather,
+        sample_insectTrap
     )
 
 from insect import serializers
@@ -32,6 +33,8 @@ GENE_URL = reverse('insect:insectgenes-list')
 SPECIE_URL = reverse('insect:insectspecies-list')
 
 GODFATHER_URL = reverse('insect:insectgodfather-list')
+
+TRAP_URL = reverse('insect:insecttrap-list')
 
 
 def detail_super_family_url(supFamily_id):
@@ -67,6 +70,11 @@ def detail_specie_url(specie_id):
 def detail_godfather_url(godfather_id):
     """Return the detail url for insect godfather"""
     return reverse('insect:insectgodfather-detail', args=[godfather_id])
+
+
+def detail_trap_url(trap_id):
+    """Return the detail url for trap"""
+    return reverse('insect:insecttrap-detail', args=[trap_id])
 
 
 class PublicInsectApiTests(TestCase):
@@ -115,6 +123,12 @@ class PublicInsectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_trap_auth_required(self):
+        """Test authentification is required"""
+        res = self.client.get(TRAP_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class PrivateInsectApiTests(TestCase):
     """Test private as user"""
@@ -123,6 +137,41 @@ class PrivateInsectApiTests(TestCase):
         self.user = sample_user()
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+    def test_list_trap(self):
+        """Test listing trap"""
+        sample_insectTrap()
+        sample_insectTrap(name='test 2')
+
+        res = self.client.get(TRAP_URL)
+
+        trap = models.InsectTrap.objects.all().order_by('id')
+        serializer = serializers.InsectTrapSerializer(
+                                        trap,
+                                        many=True
+                                    )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retrieve_trap(self):
+        """Test retrieving a trap"""
+        trap = sample_insectTrap()
+
+        url = detail_trap_url(trap.id)
+        res = self.client.get(url)
+
+        serializer = serializers.InsectTrapSerializer(trap)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_trap_admin_required(self):
+        """Test admin is required"""
+        payload = {'name': 'trap test name'}
+
+        res = self.client.post(TRAP_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_godfather(self):
         """Test listing godfather"""
@@ -379,6 +428,38 @@ class PrivateInsectApiAsAdminTests(TestCase):
                     )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+    def test_create_trap(self):
+        """Test creating a trap"""
+        payload = {'name': 'trap test name'}
+
+        res = self.client.post(TRAP_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        trap = models.InsectTrap.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(trap, key))
+
+    def test_create_trap_no_name_fail(self):
+        """Test creating a trap without name should fail"""
+        payload = {'name': ''}
+
+        res = self.client.post(TRAP_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_trap(self):
+        """Test updating trap"""
+        trap = sample_insectTrap()
+        payload = {'name': 'new trap name'}
+
+        url = detail_trap_url(trap.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        trap.refresh_from_db()
+
+        self.assertEqual(trap.name, payload['name'])
 
     def test_create_godfather(self):
         """Test creating a godfather"""

@@ -7,7 +7,8 @@ from core.models import (
                     InsectTribes,
                     InsectGenes,
                     InsectSpecies,
-                    InsectGodfather
+                    InsectGodfather,
+                    InsectTrap
                 )
 
 
@@ -80,6 +81,15 @@ class InsectGodfatherSerializer(serializers.ModelSerializer):
     """Serializer for insect godfather objects"""
     class Meta:
         model = InsectGodfather
+        fields = ('id', 'name')
+        read_only_fields = ('id',)
+        required_fields = ('name')
+
+
+class InsectTrapSerializer(serializers.ModelSerializer):
+    """Serializer for insect trap objects"""
+    class Meta:
+        model = InsectTrap
         fields = ('id', 'name')
         read_only_fields = ('id',)
         required_fields = ('name')

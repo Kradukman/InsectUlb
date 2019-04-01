@@ -136,6 +136,10 @@ class InsectGodfather(BaseModel):
     """Insect godfahter"""
 
 
+class InsectTrap(BaseModel):
+    """Insect trap"""
+
+
 class InsectSuperFamilies(BaseModel):
     """Insect super families"""
 
