@@ -33,19 +33,19 @@ def assign_place_project_url(project_id):
     return reverse('project:project-assign_place', args=[project_id])
 
 
-class PublicPlaceApiTests(TestCase):
+class PublicProjectApiTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
 
-    def test_placetype_auth_required(self):
+    def test_project_auth_required(self):
         """Test authentification is required"""
         res = self.client.get(PROJECT_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class PrivatePlaceApiTests(TestCase):
+class PrivateProjectApiTests(TestCase):
     """Test private as user"""
 
     def setUp(self):
@@ -53,18 +53,34 @@ class PrivatePlaceApiTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_list_project(self):
+    def test_list_project_as_member(self):
         """Test listing projects"""
         projectLeader = sample_user(email='techlead@ulb.ac.be')
-        sample_project(projectLeader=projectLeader)
-        sample_project(name='test 2', projectLeader=projectLeader)
+        project1 = sample_project(projectLeader=projectLeader)
+        project2 = sample_project(name='test 2', projectLeader=projectLeader)
+        project3 = sample_project(name='test 3', projectLeader=projectLeader)
+
+        models.ProjectMembership.objects.create(
+                            user=self.user,
+                            project=project1,
+                            is_active=True
+                        )
+        models.ProjectMembership.objects.create(
+                            user=self.user,
+                            project=project2,
+                            is_active=True
+                        )
 
         res = self.client.get(PROJECT_URL)
 
-        projects = models.Project.objects.all().order_by('id')
+        projects = models.Project.objects.filter(
+                                members=self.user
+                            ).order_by('id')
         serializer = serializers.ProjectSerializer(projects, many=True)
+        serializer3 = serializers.ProjectSerializer(project3, many=False)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+        self.assertNotIn(serializer3.data, res.data)
 
     def test_retrieve_project_as_member(self):
         """Test retrieving a project as a member of the project"""
@@ -115,6 +131,19 @@ class PrivateProjectApiAsAdminTests(TestCase):
                     )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+    def test_list_project(self):
+        """Test listing projects"""
+        projectLeader = sample_user(email='techlead@ulb.ac.be')
+        sample_project(projectLeader=projectLeader)
+        sample_project(name='test 2', projectLeader=projectLeader)
+
+        res = self.client.get(PROJECT_URL)
+
+        projects = models.Project.objects.all().order_by('id')
+        serializer = serializers.ProjectSerializer(projects, many=True)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
 
     def test_create_project(self):
         """Test creating a project"""

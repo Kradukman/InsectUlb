@@ -56,6 +56,18 @@ class ProjectViewset(BasePermissionsViewset):
             return serializers.ProjectDetailSerializer
         return self.serializer_class
 
+    def get_queryset(self):
+        queryset = self.queryset
+        user = self.request.user
+        if self.action == 'list':
+            if not self.request.user.is_staff:
+                queryset = (
+                        Project.objects.filter(projectLeader=user)
+                        |
+                        Project.objects.filter(members=user)
+                    )
+        return queryset
+
     @action(
         methods=['patch'],
         detail=True,
