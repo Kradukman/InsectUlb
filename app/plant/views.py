@@ -1,6 +1,6 @@
 from core.views import BasePermissionsViewset
 
-from core.models import PlantFamilies, PlantGenes, PlantSpecies
+from core.models import PlantFamilies, PlantGenera, PlantSpecies
 
 from plant import serializers
 
@@ -11,10 +11,10 @@ class PlantFamiliesViewset(BasePermissionsViewset):
     queryset = PlantFamilies.objects.all()
 
 
-class PlantGenesViewset(BasePermissionsViewset):
+class PlantGeneraViewset(BasePermissionsViewset):
     """Manage plant Genes as admin"""
-    serializer_class = serializers.PlantGenesSerializer
-    queryset = PlantGenes.objects.all()
+    serializer_class = serializers.PlantGeneraSerializer
+    queryset = PlantGenera.objects.all()
 
 
 class PlantSpeciesViewset(BasePermissionsViewset):

@@ -52,14 +52,14 @@ class PlantFamilies(BaseModel):
     """Plant family"""
 
 
-class PlantGenes(BaseModel):
-    """Plant gene"""
+class PlantGenera(BaseModel):
+    """Plant genus"""
     family = models.ForeignKey(PlantFamilies, on_delete=models.CASCADE)
 
 
 class PlantSpecies(BaseModel):
     """Plant species"""
-    gene = models.ForeignKey(PlantGenes, on_delete=models.CASCADE)
+    genus = models.ForeignKey(PlantGenera, on_delete=models.CASCADE)
 
 
 class PlaceType(BaseModel):
@@ -162,20 +162,19 @@ class InsectTribes(BaseModel):
     subFamily = models.ForeignKey(InsectSubFamilies, on_delete=models.CASCADE)
 
 
-class InsectGenes(BaseModel):
-    """Insect genes"""
+class InsectGenera(BaseModel):
+    """Insect genera"""
     tribe = models.ForeignKey(InsectTribes, on_delete=models.CASCADE)
 
 
 class InsectSpecies(BaseModel):
     """Insect species"""
-    gene = models.ForeignKey(InsectGenes, on_delete=models.CASCADE)
+    genus = models.ForeignKey(InsectGenera, on_delete=models.CASCADE)
     otherName = models.CharField(max_length=255, null=True)
     godfather = models.ForeignKey(InsectGodfather, on_delete=models.CASCADE)
     year = models.IntegerField()
 
 
-class InsectSubGenes(models.Model):
-    """Insect sub genes is a mix info between specie and gene"""
-    gene = models.ForeignKey(InsectGenes, on_delete=models.CASCADE)
-    specie = models.ForeignKey(InsectSpecies, on_delete=models.CASCADE)
+class InsectSubGenera(BaseModel):
+    """Insect sub genera is a mix info between specie and gene"""
+    genus = models.ForeignKey(InsectGenera, on_delete=models.CASCADE)

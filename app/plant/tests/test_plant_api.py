@@ -8,7 +8,7 @@ from core import models
 from user.tests.test_user_api import create_superuser, sample_user
 from core.tests.test_models import (
         sample_plantFamily,
-        sample_plantGene,
+        sample_plantGenus,
         sample_plantSpecie
     )
 
@@ -18,7 +18,7 @@ from plant import serializers
 FAMILY_URL = reverse('plant:plantfamilies-list')
 # workspace + viewset name + function
 
-GENE_URL = reverse('plant:plantgenes-list')
+GENUS_URL = reverse('plant:plantgenera-list')
 
 SPECIE_URL = reverse('plant:plantspecies-list')
 
@@ -28,9 +28,9 @@ def detail_family_url(family_id):
     return reverse('plant:plantfamilies-detail', args=[family_id])
 
 
-def detail_gene_url(gene_id):
-    """Return the detail url for plant gene"""
-    return reverse('plant:plantgenes-detail', args=[gene_id])
+def detail_genus_url(genus_id):
+    """Return the detail url for plant genus"""
+    return reverse('plant:plantgenera-detail', args=[genus_id])
 
 
 def detail_specie_url(specie_id):
@@ -48,9 +48,9 @@ class PublicPlantApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_gene_auth_required(self):
+    def test_genus_auth_required(self):
         """Test authentification is required"""
-        res = self.client.get(GENE_URL)
+        res = self.client.get(GENUS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -101,44 +101,44 @@ class PrivatePlantApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_gene_admin_required(self):
+    def test_genus_admin_required(self):
         """Test admin is required"""
         family = sample_plantFamily()
-        payload = {'name': 'gene test name', 'family': family.id}
+        payload = {'name': 'genus test name', 'family': family.id}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_specie_admin_required(self):
         """Test admin is required"""
-        gene = sample_plantGene()
-        payload = {'name': 'specie test name', 'gene': gene.id}
+        genus = sample_plantGenus()
+        payload = {'name': 'specie test name', 'genus': genus.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_genes(self):
-        """Test listing genes"""
-        sample_plantGene()
-        sample_plantGene(name='test 2')
+    def test_list_genera(self):
+        """Test listing genera"""
+        sample_plantGenus()
+        sample_plantGenus(name='test 2')
 
-        res = self.client.get(GENE_URL)
+        res = self.client.get(GENUS_URL)
 
-        genes = models.PlantGenes.objects.all().order_by('id')
-        serializer = serializers.PlantGenesSerializer(genes, many=True)
+        genera = models.PlantGenera.objects.all().order_by('id')
+        serializer = serializers.PlantGeneraSerializer(genera, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_retrieve_gene(self):
-        """Test retrieving a gene"""
-        gene = sample_plantGene()
+    def test_retrieve_genus(self):
+        """Test retrieving a genus"""
+        genus = sample_plantGenus()
 
-        url = detail_gene_url(gene.id)
+        url = detail_genus_url(genus.id)
         res = self.client.get(url)
 
-        serializer = serializers.PlantGenesSerializer(gene)
+        serializer = serializers.PlantGeneraSerializer(genus)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
@@ -211,52 +211,52 @@ class PrivatePlantApiAsAdminTests(TestCase):
 
         self.assertEqual(family.name, payload['name'])
 
-    def test_create_gene(self):
-        """Test creating a gene"""
+    def test_create_genus(self):
+        """Test creating a genus"""
         family = sample_plantFamily()
-        payload = {'name': 'gene test name', 'family': family.id}
+        payload = {'name': 'genus test name', 'family': family.id}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        gene = models.PlantGenes.objects.get(id=res.data['id'])
-        self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.family.id, payload['family'])
+        genus = models.PlantGenera.objects.get(id=res.data['id'])
+        self.assertEqual(genus.name, payload['name'])
+        self.assertEqual(genus.family.id, payload['family'])
 
-    def test_create_gene_no_name_fail(self):
-        """Test creating a gene without name should fail"""
+    def test_create_genus_no_name_fail(self):
+        """Test creating a genus without name should fail"""
         payload = {'name': ''}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_update_gene(self):
-        """Test updating gene²"""
-        gene = sample_plantGene()
+    def test_update_genus(self):
+        """Test updating genus"""
+        genus = sample_plantGenus()
         family = sample_plantFamily(name='other family')
         payload = {'name': 'new gene name', 'family': family.id}
 
-        url = detail_gene_url(gene.id)
+        url = detail_genus_url(genus.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        gene.refresh_from_db()
+        genus.refresh_from_db()
 
-        self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.family.id, payload['family'])
+        self.assertEqual(genus.name, payload['name'])
+        self.assertEqual(genus.family.id, payload['family'])
 
     def test_create_specie(self):
         """Test creating a specie"""
-        gene = sample_plantGene()
-        payload = {'name': 'specie test name', 'gene': gene.id}
+        genus = sample_plantGenus()
+        payload = {'name': 'specie test name', 'genus': genus.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         specie = models.PlantSpecies.objects.get(id=res.data['id'])
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene'])
+        self.assertEqual(specie.genus.id, payload['genus'])
 
     def test_create_specie_no_name_fail(self):
         """Test creating a specie without name should fail"""
@@ -269,8 +269,8 @@ class PrivatePlantApiAsAdminTests(TestCase):
     def test_update_specie(self):
         """Test updating specie"""
         specie = sample_plantSpecie()
-        gene = sample_plantGene(name='other gene')
-        payload = {'name': 'new specie name', 'gene': gene.id}
+        genus = sample_plantGenus(name='other gene')
+        payload = {'name': 'new specie name', 'genus': genus.id}
 
         url = detail_specie_url(specie.id)
         res = self.client.patch(url, payload)
@@ -279,4 +279,4 @@ class PrivatePlantApiAsAdminTests(TestCase):
         specie.refresh_from_db()
 
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene'])
+        self.assertEqual(specie.genus.id, payload['genus'])

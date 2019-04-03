@@ -11,7 +11,7 @@ from core.tests.test_models import (
         sample_insectFamily,
         sample_insectSubFamily,
         sample_insectTribe,
-        sample_insectGene,
+        sample_insectGenus,
         sample_insectSpecie,
         sample_insectGodfather,
         sample_insectTrap
@@ -28,7 +28,7 @@ SUBFAMILY_URL = reverse('insect:insectsubfamilies-list')
 
 TRIBE_URL = reverse('insect:insecttribes-list')
 
-GENE_URL = reverse('insect:insectgenes-list')
+GENUS_URL = reverse('insect:insectgenera-list')
 
 SPECIE_URL = reverse('insect:insectspecies-list')
 
@@ -57,9 +57,9 @@ def detail_tribe_url(tribe_id):
     return reverse('insect:insecttribes-detail', args=[tribe_id])
 
 
-def detail_gene_url(gene_id):
-    """Return the detail url for insect gene"""
-    return reverse('insect:insectgenes-detail', args=[gene_id])
+def detail_genus_url(genus_id):
+    """Return the detail url for insect genus"""
+    return reverse('insect:insectgenera-detail', args=[genus_id])
 
 
 def detail_specie_url(specie_id):
@@ -105,9 +105,9 @@ class PublicInsectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_gene_auth_required(self):
+    def test_genus_auth_required(self):
         """Test authentification is required"""
-        res = self.client.get(GENE_URL)
+        res = self.client.get(GENUS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -351,36 +351,36 @@ class PrivateInsectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_genes(self):
-        """Test listing genes"""
-        sample_insectGene()
-        sample_insectGene(name='test 2')
+    def test_list_genera(self):
+        """Test listing genera"""
+        sample_insectGenus()
+        sample_insectGenus(name='test 2')
 
-        res = self.client.get(GENE_URL)
+        res = self.client.get(GENUS_URL)
 
-        genes = models.InsectGenes.objects.all().order_by('id')
-        serializer = serializers.InsectGenesSerializer(genes, many=True)
+        genera = models.InsectGenera.objects.all().order_by('id')
+        serializer = serializers.InsectGeneraSerializer(genera, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_retrieve_gene(self):
-        """Test retrieving a gene"""
-        gene = sample_insectGene()
+    def test_retrieve_genus(self):
+        """Test retrieving a genus"""
+        genus = sample_insectGenus()
 
-        url = detail_gene_url(gene.id)
+        url = detail_genus_url(genus.id)
         res = self.client.get(url)
 
-        serializer = serializers.InsectGenesSerializer(gene)
+        serializer = serializers.InsectGeneraSerializer(genus)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_gene_admin_required(self):
+    def test_genus_admin_required(self):
         """Test admin is required"""
         tribe = sample_insectTribe()
-        payload = {'name': 'gene test name', 'tribe': tribe.id}
+        payload = {'name': 'genus test name', 'tribe': tribe.id}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -410,8 +410,8 @@ class PrivateInsectApiTests(TestCase):
 
     def test_specie_admin_required(self):
         """Test admin is required"""
-        gene = sample_insectGene()
-        payload = {'name': 'specie test name', 'gene': gene.id}
+        genus = sample_insectGenus()
+        payload = {'name': 'specie test name', 'genus': genus.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
@@ -633,49 +633,49 @@ class PrivateInsectApiAsAdminTests(TestCase):
         self.assertEqual(tribe.name, payload['name'])
         self.assertEqual(tribe.subFamily.id, payload['subFamily'])
 
-    def test_create_gene(self):
-        """Test creating a gene"""
+    def test_create_genus(self):
+        """Test creating a genus"""
         tribe = sample_insectTribe()
-        payload = {'name': 'gene test name', 'tribe': tribe.id}
+        payload = {'name': 'genus test name', 'tribe': tribe.id}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        gene = models.InsectGenes.objects.get(id=res.data['id'])
-        self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.tribe.id, payload['tribe'])
+        genus = models.InsectGenera.objects.get(id=res.data['id'])
+        self.assertEqual(genus.name, payload['name'])
+        self.assertEqual(genus.tribe.id, payload['tribe'])
 
-    def test_create_gene_no_name_fail(self):
-        """Test creating a gene without name should fail"""
+    def test_create_genus_no_name_fail(self):
+        """Test creating a genus without name should fail"""
         tribe = sample_insectTribe()
         payload = {'name': '', 'tribe': tribe.id}
 
-        res = self.client.post(GENE_URL, payload)
+        res = self.client.post(GENUS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_update_gene(self):
-        """Test updating gene"""
-        gene = sample_insectGene()
+    def test_update_genus(self):
+        """Test updating genus"""
+        genus = sample_insectGenus()
         tribe = sample_insectTribe(name='other tribe')
-        payload = {'name': 'new gene name', 'tribe': tribe.id}
+        payload = {'name': 'new genus name', 'tribe': tribe.id}
 
-        url = detail_gene_url(gene.id)
+        url = detail_genus_url(genus.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        gene.refresh_from_db()
+        genus.refresh_from_db()
 
-        self.assertEqual(gene.name, payload['name'])
-        self.assertEqual(gene.tribe.id, payload['tribe'])
+        self.assertEqual(genus.name, payload['name'])
+        self.assertEqual(genus.tribe.id, payload['tribe'])
 
     def test_create_specie(self):
         """Test creating a specie"""
-        gene = sample_insectGene()
+        genus = sample_insectGenus()
         godfather = sample_insectGodfather()
         payload = {
                     'name': 'specie test name',
-                    'gene': gene.id,
+                    'genus': genus.id,
                     'godfather': godfather.id,
                     'year': 2010
                 }
@@ -685,12 +685,12 @@ class PrivateInsectApiAsAdminTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         specie = models.InsectSpecies.objects.get(id=res.data['id'])
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene'])
+        self.assertEqual(specie.genus.id, payload['genus'])
 
     def test_create_specie_no_name_fail(self):
         """Test creating a specie without name should fail"""
-        gene = sample_insectGene()
-        payload = {'name': '', 'gene': gene.id}
+        genus = sample_insectGenus()
+        payload = {'name': '', 'genus': genus.id}
 
         res = self.client.post(SPECIE_URL, payload)
 
@@ -699,11 +699,11 @@ class PrivateInsectApiAsAdminTests(TestCase):
     def test_update_specie(self):
         """Test updating specie"""
         specie = sample_insectSpecie()
-        gene = sample_insectGene(name='other gene')
+        genus = sample_insectGenus(name='other genus')
         godfather = sample_insectGodfather(name='other godfather')
         payload = {
                     'name': 'new specie name',
-                    'gene': gene.id,
+                    'genus': genus.id,
                     'godfather': godfather.id
                 }
 
@@ -714,4 +714,4 @@ class PrivateInsectApiAsAdminTests(TestCase):
         specie.refresh_from_db()
 
         self.assertEqual(specie.name, payload['name'])
-        self.assertEqual(specie.gene.id, payload['gene'])
+        self.assertEqual(specie.genus.id, payload['genus'])

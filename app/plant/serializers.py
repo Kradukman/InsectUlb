@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import PlantFamilies, PlantGenes, PlantSpecies
+from core.models import PlantFamilies, PlantGenera, PlantSpecies
 
 
 class PlantFamiliesSerializer(serializers.ModelSerializer):
@@ -12,14 +12,14 @@ class PlantFamiliesSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-class PlantGenesSerializer(serializers.ModelSerializer):
-    """Serializer for plant Gene objects"""
+class PlantGeneraSerializer(serializers.ModelSerializer):
+    """Serializer for plant Genus objects"""
     family = serializers.PrimaryKeyRelatedField(
                             many=False, queryset=PlantFamilies.objects.all()
                         )
 
     class Meta:
-        model = PlantGenes
+        model = PlantGenera
         fields = ('id', 'name', 'family')
         read_only_fields = ('id',)
         required_fields = ('name', 'family')
@@ -27,11 +27,11 @@ class PlantGenesSerializer(serializers.ModelSerializer):
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
     """Serializer for plant Specie objects"""
-    gene = serializers.PrimaryKeyRelatedField(
-                            many=False, queryset=PlantGenes.objects.all()
+    genus = serializers.PrimaryKeyRelatedField(
+                            many=False, queryset=PlantGenera.objects.all()
                         )
 
     class Meta:
         model = PlantSpecies
-        fields = ('id', 'name', 'gene')
+        fields = ('id', 'name', 'genus')
         read_only_fields = ('id',)

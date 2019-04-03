@@ -9,16 +9,19 @@ def sample_plantFamily(name='test family'):
     return models.PlantFamilies.objects.get_or_create(name=name)[0]
 
 
-def sample_plantGene(name='test Gene', family=None):
+def sample_plantGenus(name='test Gene', family=None):
     if family is None:
         family = sample_plantFamily()
-    return models.PlantGenes.objects.get_or_create(name=name, family=family)[0]
+    return models.PlantGenera.objects.get_or_create(
+                                            name=name,
+                                            family=family
+                                        )[0]
 
 
-def sample_plantSpecie(name='test specie', gene=None):
-    if gene is None:
-        gene = sample_plantGene()
-    return models.PlantSpecies.objects.get_or_create(name=name, gene=gene)[0]
+def sample_plantSpecie(name='test specie', genus=None):
+    if genus is None:
+        genus = sample_plantGenus()
+    return models.PlantSpecies.objects.get_or_create(name=name, genus=genus)[0]
 
 
 def sample_placeType(name='test place type'):
@@ -130,10 +133,10 @@ def sample_insectTribe(name='test tribe', insectSubFam=None):
                                 )[0]
 
 
-def sample_insectGene(name='test genus', insectTribe=None):
+def sample_insectGenus(name='test genus', insectTribe=None):
     if insectTribe is None:
         insectTribe = sample_insectTribe()
-    return models.InsectGenes.objects.get_or_create(
+    return models.InsectGenera.objects.get_or_create(
                                     name=name,
                                     tribe=insectTribe
                                 )[0]
@@ -151,10 +154,10 @@ def sample_insectSpecie(
     if insectGodfather is None:
         insectGodfather = sample_insectGodfather()
     if insectGen is None:
-        insectGen = sample_insectGene()
+        insectGen = sample_insectGenus()
     return models.InsectSpecies.objects.get_or_create(
                                     name=name,
-                                    gene=insectGen,
+                                    genus=insectGen,
                                     godfather=insectGodfather,
                                     year=2010
                                 )[0]

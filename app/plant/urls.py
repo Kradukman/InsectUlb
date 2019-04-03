@@ -8,7 +8,7 @@ app_name = 'plant'
 
 router = DefaultRouter()
 router.register('family', views.PlantFamiliesViewset)
-router.register('gene', views.PlantGenesViewset)
+router.register('genus', views.PlantGeneraViewset)
 router.register('specie', views.PlantSpeciesViewset)
 
 urlpatterns = [
